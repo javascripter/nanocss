@@ -308,4 +308,4 @@ NanoCSS is written in TypeScript and provides full type definitions out of the b
   CSS capabilities including pseudo classes and media queries to native inline
   styles.
 - [StyleX](https://github.com/facebook/stylex) for the simple and powerful API
-  design for predictive and deterministic styling.
+  design for predictable and deterministic styling.
