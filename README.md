@@ -151,14 +151,6 @@ This is modeled after `Object.assign` behavior.
 
 All styles are generated at runtime, eliminating the need for complex build processes and allowing for flexibility.
 
-### Performance Considerations
-
-NanoCSS is designed with performance in mind:
-
-- The `create` function does most of the heavy lifting outside of the render cycle.
-- The `props` function is optimized for fast merging during rendering.
-- CSS variables are used to create a small initial stylesheet, reducing the payload size.
-
 ### Server-Side Rendering
 
 NanoCSS works out of the box with SSR and RSC setups. The generated styles are included inline with your HTML, improving First Contentful Paint times.
@@ -199,14 +191,102 @@ function Component() {
 }
 ```
 
-`nanocss.inline` must compute and resolve nested conditions during rendering so it should be used sparingly.
+`nanocss.inline` must compute and resolve nested conditions during rendering so
+it should be used sparingly.
+
+### Performance Considerations
+
+NanoCSS is designed with performance in mind:
+
+- The `create` function does most of the heavy lifting outside of the render cycle.
+- The `props` function is optimized for fast merging during rendering.
+- CSS variables are used to create a small initial stylesheet, reducing the payload size.
 
 ### Best Practices
 
 1. Define styles outside of your components using `create` for better performance.
 2. Leverage style composition for creating variant styles.
 3. For dynamic styles, prefer conditional styles over style functions in `create`.
-4. `inline` function should be used sparingly to hoist computation outside rendering.
+4. `inline` function should be used sparingly to hoist computation outside
+   rendering.
+
+## How does it work?
+
+NanoCSS is built on top of [CSS Hooks](https://css-hooks.com/), which leverages
+the fallback trick of CSS custom properties to enable pseudo-classes and media
+queries in inline styles.
+
+<details>
+  <summary>
+    Implementation Details
+  </summary>
+Given the following style definitions:
+
+```typescript
+const { create, styleSheet } = nanocss({
+  hooks: [':hover'],
+})
+
+const styles = nanocss.create({
+  root: {
+    color: {
+      default: 'black',
+      ':hover': 'red',
+    },
+  },
+})
+```
+
+NanoCSS generates the following `styleSheet` and `styles`:
+
+```typescript
+const styleSheet = () => `
+* {
+  --_hover-0: initial;
+  --_hover-1: ;
+}
+*:hover {
+  --_hover-0: ;
+  --_hover-1: initial;
+}
+`
+
+const styles = {
+  root: {
+    style: {
+      color: 'var(--_hover-1, red) var(--_hover-0, black)',
+    },
+  },
+}
+```
+
+The `styleSheet` function generates a small stylesheet with CSS custom properties for each defined hook (e.g., :hover).
+The `create` function transforms style definitions into flat inline style objects that utilizes the generated CSS custom properties.
+
+Then, the `props` function merges multiple nested styles into a single flat style object by iterating over the provided styles and flattening them in the specified order. When encountering conflicting properties, the last style takes precedence, ensuring a predictable "last style wins" approach.
+
+```typescript
+function props(...styles: StyleProp[]): {
+  className?: string
+  style?: React.CSSProperties
+} {
+  const style: Record<string, any> = {}
+
+  for (const flatStyle of (styles as any[]).flat(Infinity)) {
+    if (!flatStyle) continue
+    Object.keys(flatStyle).forEach((key) => {
+      delete style[key]
+      style[key] = flatStyle[key]
+    })
+  }
+
+  return { style }
+}
+```
+
+The combination of CSS Hooks and a StyleX-inspired API allows NanoCSS to provide a simple and intuitive way to define and compose styles while ensuring predictable behavior and optimal performance across various rendering scenarios.
+
+</details>
 
 ## Why NanoCSS?
 
