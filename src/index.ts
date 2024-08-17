@@ -20,9 +20,27 @@ type CSSProperties<HookName> = {
     : PropertyValue<HookName, React.CSSProperties[K]> | undefined
 }
 
-type Style = {
-  readonly $$css: unique symbol
+type Tokens<HookName> = {
+  [key: string]: HookName[] extends never[]
+    ? React.CSSProperties[keyof React.CSSProperties] | null
+    : PropertyValue<HookName, React.CSSProperties[keyof React.CSSProperties]>
 }
+
+type VarGroup<HookName, DefaultTokens extends Tokens<HookName>> = {
+  [Key in keyof DefaultTokens]: DefaultTokens[Key]
+} & {
+  readonly $$vars: unique symbol
+}
+
+type Theme = {
+  readonly $$theme: unique symbol
+}
+
+type Style =
+  | {
+      readonly $$css: unique symbol
+    }
+  | Theme
 
 type StyleProp = Style | RecursiveArray<Style | Falsy> | Falsy
 
@@ -89,6 +107,10 @@ function nanocss<T extends HookNames>({
     debug,
   })
 
+  // Mutable variables
+  const customProperties: Record<string, any> = {}
+  let id = 0
+
   /**
    * Merges styles and returns a style props object to spread into a component.
    * @param styles - Array of styles to merge.
@@ -122,8 +144,11 @@ function nanocss<T extends HookNames>({
 
     const on: Array<[string | { and: string[] }, Record<string, any>]> = []
 
-    for (const prop in style) {
+    for (let prop in style) {
       const value = style[prop as keyof typeof style]
+      if (prop in customProperties) {
+        prop = customProperties[prop]
+      }
 
       if (value == null) {
         result[prop] = undefined
@@ -179,8 +204,6 @@ function nanocss<T extends HookNames>({
     return css(result) as Style
   }
 
-  let id = 0
-
   /**
    * Creates a set of styles.
    * @param styles - Object containing CSS properties or functions returning CSS properties with potential hooks.
@@ -216,10 +239,61 @@ function nanocss<T extends HookNames>({
     return result as any
   }
 
+  /**
+   * Defines a set of CSS variables.
+   * @param tokens Object with names as keys and flat values or nested values with potential hooks..
+   * @returns An object with the same keys as the input tokens object, but the values are CSS variable names.
+   */
+  function defineVars<DefaultTokens extends Tokens<T>>(
+    tokens: DefaultTokens
+  ): VarGroup<T, DefaultTokens> {
+    const style: Record<string, any> = {}
+    const nameToKeyMap: Record<string, string> = {}
+
+    for (const [key, value] of Object.entries(tokens)) {
+      const name = `--_nanocss_var_${id++}`
+      style[name] = value
+      nameToKeyMap[name] = key
+    }
+
+    const inlineStyle = inline(style) as Record<string, any>
+    const result: Record<string, any> = {}
+
+    for (const [name, value] of Object.entries(inlineStyle)) {
+      const key = nameToKeyMap[name]
+      const resolvedVar = `var(${name}, ${value})`
+      customProperties[resolvedVar] = name
+      result[key] = resolvedVar
+    }
+    return result as VarGroup<T, DefaultTokens>
+  }
+
+  function createTheme<Vars extends VarGroup<T, any>>(
+    baseTokens: Vars,
+    overrides: {
+      [Key in Exclude<keyof Vars, '$$vars'>]: T[] extends never[]
+        ? React.CSSProperties[keyof React.CSSProperties] | null
+        : PropertyValue<T, React.CSSProperties[keyof React.CSSProperties]>
+    }
+  ): {
+    [Key in Exclude<keyof Vars, '$$vars'>]: string
+  } & Theme {
+    const style: Record<string, any> = {}
+    for (const [key, value] of Object.entries(overrides)) {
+      const varName = baseTokens[key as keyof typeof baseTokens] as string
+      const normalizedKey = varName.replace(/^var\((--.*?), .*\)$/, '$1')
+      style[normalizedKey] = overrides[key as keyof typeof overrides]
+    }
+
+    return inline(style) as any
+  }
+
   return {
     props,
     create,
     inline,
+    defineVars,
+    createTheme,
     styleSheet,
   }
 }

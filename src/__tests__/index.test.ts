@@ -431,3 +431,255 @@ it('should preserve the property order of styles', () => {
     }
   `)
 })
+
+it('should generate style sheet and props with custom properties', () => {
+  const { styleSheet, create, props, defineVars } = nanocss({
+    hooks: [':hover'],
+    debug: true,
+  })
+
+  expect(styleSheet()).toMatchInlineSnapshot(`
+    "* {
+      --_hover-mbscpo-0: initial;
+      --_hover-mbscpo-1: ;
+    }
+    *:hover {
+      --_hover-mbscpo-0: ;
+      --_hover-mbscpo-1: initial;
+    }
+    "
+  `)
+
+  const colors = defineVars({
+    primary: 'green',
+  })
+
+  const styles = create({
+    root: {
+      color: colors.primary,
+      backgroundColor: {
+        default: 'red',
+        ':hover': 'blue',
+      },
+    },
+  })
+
+  expect(props(styles.root)).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "backgroundColor": "var(--_hover-mbscpo-1, blue) var(--_hover-mbscpo-0, red)",
+        "color": "var(--_nanocss_var_0, green)",
+      },
+    }
+  `)
+})
+
+it('should generate style sheet and props with custom properties and can override with var name as property key', () => {
+  const { styleSheet, create, props, defineVars } = nanocss({
+    hooks: [],
+    debug: true,
+  })
+
+  expect(styleSheet()).toMatchInlineSnapshot(`
+    "* {
+    }
+    "
+  `)
+
+  const colors = defineVars({
+    primary: 'green',
+  })
+
+  // @ts-expect-error This is an advanced use case and is not typed correctly at
+  // the moment. React.CSSProperties does not allow arbitrary string as a key.
+  const styles = create({
+    root: {
+      color: colors.primary,
+      [colors.primary]: 'red',
+    },
+  })
+
+  expect(props(styles.root)).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "--_nanocss_var_0": "red",
+        "color": "var(--_nanocss_var_0, green)",
+      },
+    }
+  `)
+})
+
+it('should generate style sheet and props with custom properties with nested objects', () => {
+  const { styleSheet, create, props, defineVars } = nanocss({
+    hooks: [':hover'],
+    debug: true,
+  })
+
+  expect(styleSheet()).toMatchInlineSnapshot(`
+    "* {
+      --_hover-mbscpo-0: initial;
+      --_hover-mbscpo-1: ;
+    }
+    *:hover {
+      --_hover-mbscpo-0: ;
+      --_hover-mbscpo-1: initial;
+    }
+    "
+  `)
+
+  const colors = defineVars({
+    primary: 'green',
+  })
+
+  const styles = create({
+    root: {
+      color: {
+        default: colors.primary,
+        ':hover': 'red',
+      },
+    },
+  })
+
+  expect(props(styles.root)).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "color": "var(--_hover-mbscpo-1, red) var(--_hover-mbscpo-0, var(--_nanocss_var_0, green))",
+      },
+    }
+  `)
+})
+
+it('should generate style sheet and props with custom properties and themes', () => {
+  const { styleSheet, create, props, defineVars, createTheme } = nanocss({
+    hooks: [],
+    debug: true,
+  })
+
+  expect(styleSheet()).toMatchInlineSnapshot(`
+    "* {
+    }
+    "
+  `)
+
+  const colors = defineVars({
+    primary: 'green',
+  })
+
+  const theme = createTheme(colors, {
+    primary: 'red',
+  })
+
+  const styles = create({
+    root: {
+      color: colors.primary,
+    },
+  })
+
+  expect(props(theme, styles.root)).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "--_nanocss_var_0": "red",
+        "color": "var(--_nanocss_var_0, green)",
+      },
+    }
+  `)
+})
+
+it('should generate style sheet and props with custom properties and themes with nested objects', () => {
+  const { styleSheet, create, props, defineVars, createTheme } = nanocss({
+    hooks: [':hover'],
+    debug: true,
+  })
+
+  expect(styleSheet()).toMatchInlineSnapshot(`
+    "* {
+      --_hover-mbscpo-0: initial;
+      --_hover-mbscpo-1: ;
+    }
+    *:hover {
+      --_hover-mbscpo-0: ;
+      --_hover-mbscpo-1: initial;
+    }
+    "
+  `)
+
+  const colors = defineVars({
+    primary: 'green',
+  })
+
+  const theme = createTheme(colors, {
+    primary: {
+      default: 'red',
+      ':hover': 'blue',
+    },
+  })
+
+  const styles = create({
+    root: {
+      color: colors.primary,
+    },
+  })
+
+  expect(props(theme, styles.root)).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "--_nanocss_var_0": "var(--_hover-mbscpo-1, blue) var(--_hover-mbscpo-0, red)",
+        "color": "var(--_nanocss_var_0, green)",
+      },
+    }
+  `)
+})
+
+it('should generate style sheet and props with custom properties and themes with overrides', () => {
+  const { styleSheet, create, props, defineVars, createTheme } = nanocss({
+    hooks: [],
+    debug: true,
+  })
+
+  expect(styleSheet()).toMatchInlineSnapshot(`
+    "* {
+    }
+    "
+  `)
+
+  const colors = defineVars({
+    primary: 'green',
+  })
+
+  const theme = createTheme(colors, {
+    primary: 'red',
+  })
+
+  const themeOverride = createTheme(colors, {
+    primary: 'blue',
+  })
+
+  const styles = create({
+    root: {
+      color: colors.primary,
+    },
+  })
+
+  expect(props(theme, themeOverride, styles.root)).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "--_nanocss_var_0": "blue",
+        "color": "var(--_nanocss_var_0, green)",
+      },
+    }
+  `)
+
+  const stylesOverride = create({
+    root: {
+      color: colors.primary,
+    },
+  })
+
+  expect(props(stylesOverride.root)).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "color": "var(--_nanocss_var_0, green)",
+      },
+    }
+  `)
+})

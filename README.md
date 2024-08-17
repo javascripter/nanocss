@@ -54,11 +54,12 @@ Create `src/lib/nanocss.ts` with the following contents:
 ```typescript
 import { nanocss } from 'nanocss'
 
-export const { create, props, styleSheet } = nanocss({
-  // Hooks defined here can be used inside `create` function.
-  hooks: [':hover', '@media (max-width: 800px)'],
-  debug: process.env.NODE_ENV !== 'production',
-})
+export const { props, create, inline, defineVars, createTheme, styleSheet } =
+  nanocss({
+    // Hooks defined here can be used inside `create` function.
+    hooks: [':hover', '@media (max-width: 800px)'],
+    debug: process.env.NODE_ENV !== 'production',
+  })
 ```
 
 Optional: You can use `nanocss` CLI to scan source code to generate hooks.
@@ -196,6 +197,68 @@ function Component() {
 
 `nanocss.inline` must compute and resolve nested conditions during rendering so
 it should be used sparingly.
+
+### Themes
+
+NanoCSS supports `defineVars` and `createTheme` APIs to define CSS variables
+declaratively and override CSS variables for specific UI sub-trees.
+The APIs are compatible with StyleX and supports nested conditions for both in
+`defineVars` and `createTheme`.
+
+To understand how these APIs work together, you can refer to [StyleX Themes
+Docs](https://stylexjs.com/docs/learn/theming/defining-variables/).
+
+**Defining CSS Variables**
+
+```typescript
+export const colors = nanocss.defineVars({
+  primary: 'green',
+})
+```
+
+Unlike StyleX, variables do not need to be defined in separate `.stylex.ts` files and can
+be co-located with files defining styles and components. The same restriction
+about `create` API still apply, and variables must be defined in the top scope
+of the files rather than inside of render functions.
+
+**Using variables**
+
+```typescript
+const styles = nanocss.create({
+  container: {
+    color: colors.primary,
+  },
+})
+```
+
+Each CSS variable defined is converted to a unique variable name, and can be
+used inside `create` functions.
+
+**Create themes**
+
+```typescript
+const theme = nanocss.createTheme(colors, {
+  primary: 'red',
+})
+```
+
+Themes allow you to override CSS variables defined with `defineVars`. All
+variables must be overridden.
+
+**Using themes**
+
+```typescript
+function Component() {
+  return (
+    <main {...nanocss.props(theme)}>
+      <p {...nanocss.props(styles.container)}>Text</p>
+    </main>
+  )
+}
+```
+
+Themes can be applied via `props` and overrides CSS variables of the same
+element and its descendant UI sub-trees.
 
 ### Performance Considerations
 
