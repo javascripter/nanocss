@@ -14,7 +14,7 @@ A single file alternative to StyleX with the same API with no bundler plugin req
 - 🔧 Compatible with latest build tools like Turbopack, SWC, Expo Web and [Expo
   DOM Components](https://docs.expo.dev/guides/dom-components/) (`use dom`)
 - 🏎️ Optimized for performance in RSC, SSR and CSR environments
-- 📦 Tiny runtime footprint and
+- 📦 Tiny runtime footprint
 
 ## Installation
 
