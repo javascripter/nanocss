@@ -2,7 +2,6 @@
 
 A lightweight, high-performance CSS-in-JS library that outputs native inline styles with no build steps and minimal runtime.
 
-
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/edit/nextjs-nanocss-playground?embed=1&file=src%2Fapp%2Fpage.tsx)
 
 ## Features
@@ -170,9 +169,6 @@ const styles = nanocss.create({
   }),
 })
 ```
-
-Each argument must be a simple `number` or `string` value and cannot be used to derive other values (e.g., `(width: number) => ({ width: width + 'px'})` is not allowed).
-This is because styles are statically generated and values are passed via CSS variables.
 
 For highly dynamic styles, `nanocss.inline` can be used:
 

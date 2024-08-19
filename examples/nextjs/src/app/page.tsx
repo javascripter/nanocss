@@ -12,6 +12,7 @@ export default function Home() {
       <p {...nanocss.props(theme, themeOverride, styles.theme)}>
         Text in primary color (with theme overrides).
       </p>
+      <button {...nanocss.props(styles.dynamic(100))}>Dynamic width</button>
     </main>
   )
 }
@@ -44,4 +45,7 @@ const styles = nanocss.create({
   theme: {
     color: colors.primary,
   },
+  dynamic: (width: number) => ({
+    width,
+  }),
 })
