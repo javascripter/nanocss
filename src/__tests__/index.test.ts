@@ -432,6 +432,76 @@ it('should preserve the property order of styles', () => {
   `)
 })
 
+it('should support dynamic functions with string values', () => {
+  const { styleSheet, create, props } = nanocss({
+    hooks: [':hover'],
+    debug: true,
+  })
+
+  expect(styleSheet()).toMatchInlineSnapshot(
+    `
+    "* {
+      --_hover-mbscpo-0: initial;
+      --_hover-mbscpo-1: ;
+    }
+    *:hover {
+      --_hover-mbscpo-0: ;
+      --_hover-mbscpo-1: initial;
+    }
+    "
+  `
+  )
+
+  const styles = create({
+    root: (color: string) => ({
+      color,
+    }),
+  })
+
+  expect(props(styles.root('red'))).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "color": "red",
+      },
+    }
+  `)
+})
+
+it('should support dynamic functions with numeric unit values', () => {
+  const { styleSheet, create, props } = nanocss({
+    hooks: [':hover'],
+    debug: true,
+  })
+
+  expect(styleSheet()).toMatchInlineSnapshot(
+    `
+    "* {
+      --_hover-mbscpo-0: initial;
+      --_hover-mbscpo-1: ;
+    }
+    *:hover {
+      --_hover-mbscpo-0: ;
+      --_hover-mbscpo-1: initial;
+    }
+    "
+  `
+  )
+
+  const styles = create({
+    root: (width: number) => ({
+      width,
+    }),
+  })
+
+  expect(props(styles.root(100))).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "width": 100,
+      },
+    }
+  `)
+})
+
 it('should generate style sheet and props with custom properties', () => {
   const { styleSheet, create, props, defineVars } = nanocss({
     hooks: [':hover'],

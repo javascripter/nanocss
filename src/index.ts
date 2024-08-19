@@ -227,11 +227,7 @@ function nanocss<T extends HookNames>({
         const vars = Array.from({ length: style.length }).map(
           () => `--_nanocss_var_${id++}`
         )
-        const inlineStyle = inline(style(...vars.map((v) => `var(${v})`)))
-        result[key] = (...args: any[]) => ({
-          ...inlineStyle,
-          ...Object.fromEntries(vars.map((v, i) => [v, args[i]])),
-        })
+        result[key] = (...args: any[]) => inline(style(...args))
       } else {
         result[key] = inline(style)
       }
