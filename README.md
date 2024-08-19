@@ -1,18 +1,20 @@
 # NanoCSS
 
-A lightweight, high-performance CSS-in-JS library that outputs native inline styles with no build steps and minimal runtime.
+A single file alternative to StyleX with the same API with no bundler plugin required.
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/edit/nextjs-nanocss-playground?embed=1&file=src%2Fapp%2Fpage.tsx)
 
 ## Features
 
+- 🔮 A drop-in replacement for StyleX in just 300 lines of code with
+  [react-strict-dom](https://github.com/facebook/react-strict-dom) support
 - 🚀 Runtime-generated native inline styles with no build step required
-- 🎨 Intuitive and predictable style composition with StyleX-inspired API
+- 🎨 Intuitive and predictable style composition with "last style wins" approach
 - 🖥️ Server-side rendering (SSR) support out of the box
-- 🔧 Compatible with modern build tools like Turbopack
+- 🔧 Compatible with latest build tools like Turbopack, SWC, Expo Web and [Expo
+  DOM Components](https://docs.expo.dev/guides/dom-components/) (`use dom`)
 - 🏎️ Optimized for performance in RSC, SSR and CSR environments
-- 📦 Tiny runtime footprint
-- 🧠 Predictable style overriding with "last style wins" approach
+- 📦 Tiny runtime footprint and
 
 ## Installation
 
@@ -46,7 +48,9 @@ export default function App() {
 
 ## Usage
 
-### 1. Set up NanoCSS
+### As a standalone library
+
+#### 1. Set up NanoCSS
 
 Create `src/lib/nanocss.ts` with the following contents:
 
@@ -69,7 +73,7 @@ nanocss -i "./src/**/*.{ts,tsx}" -o "./src/lib/nanocss.ts"
 
 `--watch` option can be used to dynamically generate hooks as well.
 
-### 2. Add stylesheet
+#### 2. Add stylesheet
 
 Modify `src/app/layout.tsx` and add the stylesheet:
 
@@ -86,7 +90,7 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
 }
 ```
 
-### 3. Define styles
+#### 3. Define styles
 
 Create `src/app/page.tsx` with the following contents:
 
@@ -111,6 +115,98 @@ const styles = nanocss.create({
   },
 })
 ```
+
+### As a drop-in replacement of StyleX
+
+NanoCSS offers the same API as StyleX and react-strict-dom.
+
+You can configure module aliases in your bundler to resolve `@stylexjs/stylex`
+to NanoCSS and get all of the StyleX ecosystem benefits automatically including
+[StyleX ESLint
+Plugin](https://stylexjs.com/docs/api/configuration/eslint-plugin/) and [react-strict-dom](https://github.com/facebook/react-strict-dom).
+
+**Next.js**
+
+#### 1. Create `src/lib/stylex.ts` as a compatibility layer
+
+Add a file named `src/lib/stylex.ts` in your project.
+
+```typescript
+import { nanocss } from '@nanocss/nanocss'
+
+const { styleSheet, ...css } = nanocss({
+  hooks: [
+    // Add your hooks here
+  ],
+  debug: process.env.NODE_ENV !== 'production',
+})
+
+// For ESM imports
+export const { create, props, defineVars, createTheme } = css
+
+export { styleSheet } // Add styleSheet() in your layout.ts
+
+export default css
+```
+
+#### 2. Add stylesheet
+
+Modify `src/app/layout.tsx` and add the stylesheet:
+
+```typescript
+import { styleSheet } from '@/lib/stylex'
+
+export function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: styleSheet() }} />
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+#### 3. Configure module aliases
+
+In your `next.config.mjs`, add a module alias resolving `@stylexjs/stylex` to `src/lib/stylex.ts`
+
+```javascript
+const __dirname = new URL('.', import.meta.url).pathname
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  transpilePackages: ['react-strict-dom'], // If you use react-strict-dom, add this file
+  webpack: (config, { dev, isServer }) => {
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      '@stylexjs/stylex': path.resolve(__dirname, 'src/lib/stylex'),
+    }
+  },
+}
+
+export default nextConfig
+```
+
+Now, you can author styles using StyleX imports:
+
+```typescript
+import stylex from '@stylexjs/stylex' // This will resolve to NanoCSS
+
+const styles = stylex.create({
+  root: {
+    color: 'green',
+  },
+})
+```
+
+**Expo Web**
+
+Similar to Next.js, NanoCSS can be configured to replace `react-strict-dom` and `@stylexjs/stylex` in [Expo Web](https://docs.expo.dev/workflow/web/) with full support for [Static
+Rendering](https://docs.expo.dev/router/reference/static-rendering/), Async Routes and
+Experimental [DOM Components](https://docs.expo.dev/guides/dom-components/)(`use
+dom`) features.
 
 ## Core Concepts
 
