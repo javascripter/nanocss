@@ -206,7 +206,7 @@ const styles = stylex.create({
 Similar to Next.js, NanoCSS can be configured to replace `react-strict-dom` and `@stylexjs/stylex` in [Expo Web](https://docs.expo.dev/workflow/web/) with full support for [Static
 Rendering](https://docs.expo.dev/router/reference/static-rendering/), Async Routes and
 Experimental [DOM Components](https://docs.expo.dev/guides/dom-components/)(`use
-dom`) features.
+dom`) features. Please see [the example app](./examples/expo-universal) for how to configure module aliases in `metro.config.js`.
 
 ## Core Concepts
 
