@@ -1,6 +1,6 @@
 # NanoCSS
 
-A single file alternative to StyleX with the same API with no bundler plugin required.
+A single file alternative to [StyleX](https://stylexjs.com/) with the same API with no bundler plugin required.
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/edit/nextjs-nanocss-playground?embed=1&file=src%2Fapp%2Fpage.tsx)
 
