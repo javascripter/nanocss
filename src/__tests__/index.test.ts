@@ -753,3 +753,23 @@ it('should generate style sheet and props with custom properties and themes with
     }
   `)
 })
+
+it('should throw an error when trying to use a hook that is not defined', () => {
+  const { create } = nanocss({
+    hooks: [':hover'],
+    debug: true,
+  })
+
+  expect(() => {
+    // @ts-expect-error This is a type error but can still happen in runtime if
+    // using NanoCSS in JavaScript or when using it as a replacement for StyleX.
+    create({
+      root: {
+        color: {
+          default: 'black',
+          ':focus': 'red',
+        },
+      },
+    })
+  }).toThrowErrorMatchingInlineSnapshot(`[Error: [nanocss] ":focus" was used but not declared in the hooks array. Please add it to the hooks array.]`)
+})
