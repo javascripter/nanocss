@@ -174,6 +174,14 @@ function nanocss<T extends HookNames>({
                   value: current.value[condition],
                 })
               } else {
+                if (!hooks.includes(condition as T)) {
+                  throw new Error(
+                    `[nanocss] ${JSON.stringify(
+                      condition
+                    )} was used but not declared in the hooks array. Please add it to the hooks array.`
+                  )
+                }
+
                 stack.push({
                   conditions: [...current.conditions, condition],
                   value: current.value[condition],
