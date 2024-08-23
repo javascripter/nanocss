@@ -1,6 +1,6 @@
 # NanoCSS
 
-A fast, 2Kb alternative to [StyleX](https://stylexjs.com/) with the same API with no bundler plugin required.
+A fast, 2Kb alternative to [StyleX](https://stylexjs.com/), offering the same API without requiring a bundler plugin
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/edit/nextjs-nanocss-playground?embed=1&file=src%2Fapp%2Fpage.tsx)
 
