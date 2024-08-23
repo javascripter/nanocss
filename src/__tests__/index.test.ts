@@ -771,5 +771,54 @@ it('should throw an error when trying to use a hook that is not defined', () => 
         },
       },
     })
-  }).toThrowErrorMatchingInlineSnapshot(`[Error: [nanocss] ":focus" was used but not declared in the hooks array. Please add it to the hooks array.]`)
+  }).toThrowErrorMatchingInlineSnapshot(
+    `[Error: [nanocss] ":focus" was used but not declared in the hooks array. Please add it to the hooks array.]`
+  )
+})
+
+it('should support keyframes', () => {
+  const { create, props, defineVars, keyframes, styleSheet } = nanocss({
+    hooks: [],
+    debug: true,
+  })
+
+  const fadeIn = keyframes({
+    '0%': { opacity: 0 },
+    '100%': { opacity: 1 },
+  })
+  const animations = defineVars({
+    fadeIn,
+  })
+
+  const styles = create({
+    root: {
+      animationName: animations.fadeIn,
+    },
+  })
+
+  expect(
+    styleSheet({
+      keyframes: [fadeIn],
+    })
+  ).toMatchInlineSnapshot(`
+    "* {
+    }
+
+    @keyframes __nanocss_keyframes-0 {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }"
+  `)
+
+  expect(props(styles.root)).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "animationName": "var(--_nanocss_var_0, __nanocss_keyframes-0)",
+      },
+    }
+  `)
 })
