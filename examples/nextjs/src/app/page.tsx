@@ -1,4 +1,5 @@
 import * as nanocss from '@/lib/nanocss'
+import { fadeIn } from '../styles/animations'
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
         Text in primary color (with theme overrides).
       </p>
       <button {...nanocss.props(styles.dynamic(100))}>Dynamic width</button>
+      <p {...nanocss.props(styles.fadeIn)}>Fade in animations</p>
     </main>
   )
 }
@@ -48,4 +50,10 @@ const styles = nanocss.create({
   dynamic: (width: number) => ({
     width,
   }),
+  fadeIn: {
+    animationName: fadeIn,
+    animationDuration: '1s',
+    animationIterationCount: 'infinite',
+    animationDirection: 'alternate',
+  },
 })

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { styleSheet } from '@/lib/nanocss'
+import { fadeIn } from '../styles/animations'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,7 +18,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <style dangerouslySetInnerHTML={{ __html: styleSheet() }} />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: styleSheet({
+              keyframes: [fadeIn],
+            }),
+          }}
+        />
       </head>
       <body className={inter.className}>{children}</body>
     </html>

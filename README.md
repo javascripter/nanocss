@@ -1,20 +1,20 @@
 # NanoCSS
 
-A single file alternative to [StyleX](https://stylexjs.com/) with the same API with no bundler plugin required.
+A fast, 2Kb alternative to [StyleX](https://stylexjs.com/) with the same API with no bundler plugin required.
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/edit/nextjs-nanocss-playground?embed=1&file=src%2Fapp%2Fpage.tsx)
 
 ## Features
 
-- 🔮 A drop-in replacement for StyleX in just 300 lines of code with
+- 🔮 A drop-in replacement for StyleX with
   [react-strict-dom](https://github.com/facebook/react-strict-dom) support
-- 🚀 Runtime-generated native inline styles with no build step required
+- 🚀 Native inline style generation with no build step required
 - 🎨 Intuitive and predictable style composition with "last style wins" approach
-- 🖥️ Server-side rendering (SSR) support out of the box
+- 🖥️ RSC and SSG support out of the box, compiled away to zero runtime overhead
 - 🔧 Compatible with latest build tools like Turbopack, SWC, Expo Web and [Expo
   DOM Components](https://docs.expo.dev/guides/dom-components/) (`use dom`)
 - 🏎️ Optimized for performance in RSC, SSR and CSR environments
-- 📦 Tiny runtime footprint
+- 📦 Tiny runtime footprint in just 2Kb
 
 ## Installation
 
@@ -57,15 +57,23 @@ Create `src/lib/nanocss.ts` with the following contents:
 ```typescript
 import { nanocss } from 'nanocss'
 
-export const { props, create, inline, defineVars, createTheme, styleSheet } =
-  nanocss({
-    // Hooks defined here can be used inside `create` function.
-    hooks: [':hover', '@media (max-width: 800px)'],
-    debug: process.env.NODE_ENV !== 'production',
-  })
+export const {
+  props,
+  create,
+  inline,
+  defineVars,
+  createTheme,
+  keyframes,
+  styleSheet,
+} = nanocss({
+  // Hooks defined here can be used inside `create` function.
+  hooks: [':hover', '@media (max-width: 800px)'],
+  debug: process.env.NODE_ENV !== 'production',
+})
 ```
 
-Optional: You can use `nanocss` CLI to scan source code to generate hooks.
+Optional: You can use `nanocss` CLI to scan source code to generate hooks for
+quick scaffolding or automatic scanning.
 
 ```bash
 nanocss -i "./src/**/*.{ts,tsx}" -o "./src/lib/nanocss.ts"
@@ -142,7 +150,7 @@ const { styleSheet, ...css } = nanocss({
 })
 
 // For ESM imports
-export const { create, props, defineVars, createTheme } = css
+export const { create, props, defineVars, createTheme, keyframes } = css
 
 export { styleSheet } // Add styleSheet() in your layout.ts
 
@@ -352,6 +360,88 @@ function Component() {
 Themes can be applied via `props` and overrides CSS variables of the same
 element and its descendant UI sub-trees.
 
+### Keyframes
+
+NanoCSS offers built-in support for [StyleX `keyframes` API](https://stylexjs.com/docs/api/javascript/keyframes/) for writing CSS
+keyframe animations directly in JS, allowing you to create dynamic and complex
+animations.
+
+#### 1. Defining keyframes
+
+We recommend centralizing your keyframe definitions in a separate file, such as `src/styles/animations.ts`:
+
+```typescript
+// src/styles/animations.ts
+// File name should be `animations.stylex.ts` in StyleX-compatible mode
+import * as nanocss from '@/lib/nanocss'
+
+const { keyframes, defineVars } = nanocss()
+
+export const fadeIn = keyframes({
+  '0%': { opacity: 0 },
+  '100%': { opacity: 1 },
+})
+
+export const pulse = keyframes({
+  '0%, 100%': { transform: 'scale(1)' },
+  '50%': { transform: 'scale(1.1)' },
+})
+
+// Define custom variables for your animations
+export const animations = defineVars({
+  fadeIn,
+  pulse,
+})
+```
+
+#### 2. Add styleSheet
+
+Modify `src/app/layout.tsx` and specify keyframe names to include in the stylesheet:
+
+```typescript
+import { fadeIn, pulse } from '@/styles/animations'
+
+export function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: styleSheet({
+              keyframes: [fadeIn, pulse],
+            }),
+          }}
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+#### 3. Defining styles
+
+To use keyframe animations, simply specify the keyframe name in `animationName` prop:
+
+```typescript
+import * as nanocss from '@/lib/nanocss'
+import { animations } from '@/styles/animations'
+
+const { create, props, styleSheet } = nanocss()
+
+const styles = create({
+  root: {
+    animationName: animations.fadeIn,
+    animationDuration: '1s',
+    animationIterationCount: 'infinite',
+  },
+})
+
+export function Component() {
+  return <div {...props(styles.root)}>Fade in content</div>
+}
+```
+
 ### Performance Considerations
 
 NanoCSS is designed with performance in mind:
@@ -442,19 +532,20 @@ function props(...styles: StyleProp[]): {
 }
 ```
 
-The combination of CSS Hooks and a StyleX-inspired API allows NanoCSS to provide a simple and intuitive way to define and compose styles while ensuring predictable behavior and optimal performance across various rendering scenarios.
+The combination of CSS Hooks and a StyleX-compatible API allows NanoCSS to provide a simple and intuitive way to define and compose styles while ensuring predictable behavior and optimal performance across various rendering scenarios.
 
 </details>
 
 ## Why NanoCSS?
 
-NanoCSS offers a unique combination of performance, simplicity, and flexibility:
+NanoCSS offers a unique combination of performance, simplicity, and
+compatibility with StyleX:
 
 - No build step required, making it easy to integrate into any project
+- A drop-in compatibility with StyleX without modifying existing code
 - Predictable style composition with a "last style wins" approach
 - Optimized for various rendering scenarios (RSC, SSR, CSR)
 - Tiny runtime footprint, minimizing impact on your bundle size
-- Intuitive API inspired by StyleX, familiar to many developers
 
 ## TypeScript Support
 

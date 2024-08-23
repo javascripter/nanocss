@@ -1,5 +1,6 @@
 import type * as React from 'react'
 import { createHooks } from '@css-hooks/react'
+import { createKeyframes } from './keyframes'
 
 type Falsy = undefined | null | false
 
@@ -292,13 +293,26 @@ function nanocss<T extends HookNames>({
     return inline(style) as any
   }
 
+  const { keyframes, styleSheet: keyframesStyleSheet } = createKeyframes({
+    debug,
+  })
+
+  const newline = debug ? '\n' : ''
+
+  function styleSheetWithKeyframes(options?: { keyframes: string[] }) {
+    return [styleSheet(), keyframesStyleSheet(options?.keyframes ?? [])]
+      .filter(Boolean)
+      .join(newline)
+  }
+
   return {
     props,
     create,
     inline,
     defineVars,
     createTheme,
-    styleSheet,
+    styleSheet: styleSheetWithKeyframes,
+    keyframes,
   }
 }
 
