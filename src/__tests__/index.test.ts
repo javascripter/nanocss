@@ -544,6 +544,37 @@ it('should generate style sheet and props with custom properties', () => {
   `)
 })
 
+it('should generate style sheet and props with custom properties with passthrough', () => {
+  const { styleSheet, create, props, defineVars } = nanocss({
+    hooks: [],
+    debug: true,
+  })
+
+  expect(styleSheet()).toMatchInlineSnapshot(`
+    "* {
+    }
+    "
+  `)
+
+  const colors = defineVars({
+    '--primary': 'green',
+  })
+
+  const styles = create({
+    root: {
+      color: colors['--primary'],
+    },
+  })
+
+  expect(props(styles.root)).toMatchInlineSnapshot(`
+    {
+      "style": {
+        "color": "var(--primary, green)",
+      },
+    }
+  `)
+})
+
 it('should generate style sheet and props with custom properties and can override with var name as property key', () => {
   const { styleSheet, create, props, defineVars } = nanocss({
     hooks: [],
