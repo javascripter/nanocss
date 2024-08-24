@@ -256,7 +256,7 @@ function nanocss<T extends HookNames>({
     const nameToKeyMap: Record<string, string> = {}
 
     for (const [key, value] of Object.entries(tokens)) {
-      const name = `--_nanocss_var_${id++}`
+      const name = key.startsWith('--') ? key : `--_nanocss_var_${id++}`
       style[name] = value
       nameToKeyMap[name] = key
     }
